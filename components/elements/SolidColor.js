@@ -12,7 +12,7 @@ const SolidColor = () => {
             <HexColorPicker color={color} onChange={setColor} />
 
             <button onClick={() => fillLampColor(color)} className="px-4 py-4 transition-all mt-4 hover:bg-gray-950 w-full bg-black rounded-lg">
-                Update
+                Update Color
             </button>
         </div>
     )

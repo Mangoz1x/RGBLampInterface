@@ -33,7 +33,7 @@ const hexToRgb = (hex) => {
 
 const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
     let updated = false;
-    let result = "There was an error trying to update the color.";
+    let result = "There was an error attempting the update.";
 
     for (let i = 0; i < retries; i++) {
         try {
@@ -52,9 +52,14 @@ const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
                 break;
             }
         } catch (err) {
-            console.log(err.message);
         }
     }
+
+    if (updated) {
+        return { updated, result };
+    } 
+
+    return { error: result }
 }
 
 export const fillLampColor = async (hex) => {
@@ -68,4 +73,29 @@ export const fillLampColor = async (hex) => {
         }),
         'color_fill'
     )
+}
+
+export const updateLampBrightness = async (brightnessDecimal = 0.2) => {
+    if (brightnessDecimal <= 0) return { error: "Value must be greater than zero." };
+    if (brightnessDecimal > 1) return { error: "Value must be less than one." };
+
+    const response = await sendRepeatedRequest(
+        10,
+        JSON.stringify({
+            brightness: brightnessDecimal
+        }),
+        "set_brightness"
+    );
+}
+
+export const startLampRainbowCycle = async (gradientSteps = 20, colors=[[255,0,0],[0,255,0],[0,0,255]], wait=0.05) => {
+    const response = await sendRepeatedRequest(
+        10,
+        JSON.stringify({
+            gradient_steps: gradientSteps,
+            colors,
+            wait
+        }),
+        "rainbow_cycle"
+    );
 }
