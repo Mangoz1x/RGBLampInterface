@@ -1,6 +1,6 @@
 import { SERVER_URL } from "./serverAvailability";
 
-const hexToRgb = (hex) => {
+export const hexToRgb = (hex) => {
     // Remove leading '#' if present
     hex = hex.replace(/^#/, '');
 
@@ -31,6 +31,22 @@ const hexToRgb = (hex) => {
     return { r, g, b };
 }
 
+export const rgbToHex = (r, g, b) => {
+    // Ensure the RGB values are within the valid range (0-255)
+    if ((r < 0 || r > 255) || (g < 0 || g > 255) || (b < 0 || b > 255)) {
+        throw new Error('Invalid RGB value. Each value must be between 0 and 255.');
+    }
+
+    // Convert each RGB value to a 2-character hexadecimal string
+    const toHex = (value) => {
+        const hex = value.toString(16).toUpperCase();
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    // Combine the hex values for R, G, and B
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
     let updated = false;
     let result = "There was an error attempting the update.";
@@ -43,12 +59,20 @@ const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
                     'Content-Type': 'application/json'
                 },
                 body: body
-            }).then(res => res.text());
+            });
 
-            const data = JSON.parse(result);
-            if (data.status) {
+            if (r.status === 400) {
+                updated = false;
+                result = r.statusText;
+                break;
+            }
+
+            const tr = await r.text();
+            const data = JSON.parse(tr);
+
+            if (r.status === 200 && tr) {
                 updated = true;
-                result = r;
+                result = data;
                 break;
             }
         } catch (err) {
@@ -57,7 +81,7 @@ const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
 
     if (updated) {
         return { updated, result };
-    } 
+    }
 
     return { error: result }
 }
@@ -88,7 +112,7 @@ export const updateLampBrightness = async (brightnessDecimal = 0.2) => {
     );
 }
 
-export const startLampRainbowCycle = async (gradientSteps = 20, colors=[[255,0,0],[0,255,0],[0,0,255]], wait=0.05) => {
+export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]], wait = 0.05) => {
     const response = await sendRepeatedRequest(
         10,
         JSON.stringify({
@@ -98,4 +122,46 @@ export const startLampRainbowCycle = async (gradientSteps = 20, colors=[[255,0,0
         }),
         "rainbow_cycle"
     );
+}
+
+// Lamp DB
+export class LampDB {
+    constructor() { }
+
+    async write(key, value) {
+        const val = await sendRepeatedRequest(
+            10,
+            JSON.stringify({
+                key,
+                value
+            }),
+            "write"
+        );
+
+        return val;
+    }
+
+    async read(keys) {
+        const val = await sendRepeatedRequest(
+            10,
+            JSON.stringify({
+                keys
+            }),
+            "retrieve"
+        );
+
+        return val;
+    }
+
+    async delete(keys) {
+        const val = await sendRepeatedRequest(
+            10,
+            JSON.stringify({
+                keys
+            }),
+            "delete"
+        );
+
+        return val;
+    }
 }

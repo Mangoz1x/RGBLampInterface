@@ -1,22 +1,41 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import CustomRangeSlider from "../bites/RangeSlider";
-import { updateLampBrightness } from "@/utils/lampFunctions";
+import { LampDB, updateLampBrightness } from "@/utils/lampFunctions";
+import { SubmitButton } from "../bites/Button";
 
 export const Brightness = () => {
     const [brightness, setBrightness] = useState(0.2);
+    const [loading, setLoading] = useState(false);
 
     const updateBrightness = () => {
-        updateLampBrightness(brightness)
+        setLoading(true);
+        updateLampBrightness(brightness).then(res => {
+            setLoading(false);
+        })
     }
+
+    const loadDefault = async () => {
+        const db = new LampDB();
+        const result = await db.read(["set_brightness"]);
+        if (result?.error) return;
+        setBrightness(parseFloat((parseFloat(result?.result?.retrieved?.set_brightness?.brightness) || 0.2).toFixed(2)))
+    }
+
+    useEffect(() => {
+        loadDefault();
+    }, []);
 
     return (
         <div className="pt-20">
             <p className="text-black">Brightness</p>
-            <CustomRangeSlider onChange={(newVal) => setBrightness(newVal / 100)} />
+            <CustomRangeSlider
+                onChange={(newVal) => setBrightness(newVal / 100)}
+                initialValue={Math.round(brightness * 100)}
+            />
 
-            <button onClick={() => updateBrightness()} className="px-4 py-4 transition-all mt-4 hover:bg-gray-950 w-full bg-black rounded-lg">
+            <SubmitButton isLoading={loading} onClick={() => updateBrightness()} >
                 Update Brightness
-            </button>
+            </SubmitButton>
         </div>
     )
 }

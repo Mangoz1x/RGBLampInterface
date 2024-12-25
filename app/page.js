@@ -5,8 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import SolidColor from "@/components/elements/SolidColor";
 import { Brightness } from "@/components/elements/Brightness";
 import { RainbowCycle } from "@/components/elements/RainbowCycle";
+import { LampDB } from "@/utils/lampFunctions";
 
 const Home = () => {
+  const db = new LampDB();
+
   const Components = {
     SolidColor,
     RainbowCycle
@@ -35,7 +38,17 @@ const Home = () => {
       setIsLoaded(true);
       setSelectedTab('SolidColor');
     });
+
+    db.read(["preset"]).then(res => {
+      if (res?.error) return;
+      const savedTab = res?.result?.retrieved?.preset || 'SolidColor';
+      setSelectedTab(savedTab);
+    }) 
   }, []);
+
+  useEffect(() => {
+    db.write("preset", selectedTab).then(res => {});
+  }, [selectedTab]);
 
   return (
     <div className="flex w-full h-screen bg-white">
