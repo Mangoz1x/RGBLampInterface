@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import CustomRangeSlider from "../bites/RangeSlider";
-import { LampDB, updateLampBrightness } from "@/utils/lampFunctions";
+import { LampDB, runFunctionOnBroadcast, updateLampBrightness } from "@/utils/lampFunctions";
 import { SubmitButton } from "../bites/Button";
 
 export const Brightness = () => {
@@ -25,17 +25,32 @@ export const Brightness = () => {
         loadDefault();
     }, []);
 
-    return (
-        <div className="pt-20">
-            <p className="text-black">Brightness</p>
-            <CustomRangeSlider
-                onChange={(newVal) => setBrightness(newVal / 100)}
-                initialValue={Math.round(brightness * 100)}
-            />
+    useEffect(() => {
+        runFunctionOnBroadcast("effectUpdateBroadcasted", () => {
+            updateBrightness();
+        });
+    }, [brightness]);
 
-            <SubmitButton isLoading={loading} onClick={() => updateBrightness()} >
+    return (
+        <div className="pb-4">
+            <div className="p-4 rounded-lg bg-gray-100">
+                <p className="text-black">Brightness</p>
+                <CustomRangeSlider
+                    onChange={(newVal) => setBrightness(newVal / 100)}
+                    initialValue={Math.round(brightness * 100)}
+                />
+
+                {brightness > 0.5 && (
+                    <div className="mt-4 text-black rounded-lg p-4 bg-red-200 w-full h-fit">
+                        <h2 className="text-2xl">Warning!</h2>
+                        <p className="max-w-[800px]">Operating the lamp above 50% brightness can cause it to heat up rapidly, which may pose a fire hazard. Always supervise the lamp when used at these higher brightness levels and never leave it unattended.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* <SubmitButton isLoading={loading} onClick={() => updateBrightness()} >
                 Update Brightness
-            </SubmitButton>
+            </SubmitButton> */}
         </div>
     )
 }

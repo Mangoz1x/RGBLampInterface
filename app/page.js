@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import SolidColor from "@/components/elements/SolidColor";
 import { Brightness } from "@/components/elements/Brightness";
 import { RainbowCycle } from "@/components/elements/RainbowCycle";
+import { BreathingEffect } from "@/components/elements/BreathingEffect";
 import { LampDB } from "@/utils/lampFunctions";
 
 const Home = () => {
@@ -12,10 +13,11 @@ const Home = () => {
 
   const Components = {
     SolidColor,
-    RainbowCycle
+    RainbowCycle,
+    BreathingEffect
   }
 
-  const tabs = ["SolidColor", "RainbowCycle"]
+  const tabs = ["SolidColor", "RainbowCycle", "BreathingEffect"]
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
@@ -111,13 +113,14 @@ const Home = () => {
           </div>
 
           <div className="w-full h-full p-10">
+            <h1 className="mb-4 text-black text-xl">{selectedTab}</h1>
+            <Brightness />
+
             {(() => {
               const Component = Components[selectedTab];
               if (!Component) return null;
               return <Component />
             })()}
-
-            <Brightness />
           </div>
         </div>
       )}

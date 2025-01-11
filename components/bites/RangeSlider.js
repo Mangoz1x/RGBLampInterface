@@ -7,6 +7,7 @@ const CustomRangeSlider = ({
     step = 1,
     initialValue = 50,
     onChange,
+    hidePercentage = false
 }) => {
     const [value, setValue] = useState(initialValue);
     const sliderRef = useRef(null);
@@ -109,9 +110,9 @@ const CustomRangeSlider = ({
                     style={{ left: `${percentage}%`, zIndex: 10 }}
                 >
                     {/* Tooltip */}
-                    <div className="absolute top-[-45px] bg-gray-100 text-black px-4 py-2 rounded-sm whitespace-nowrap shadow-md">
+                    {!hidePercentage && <div className="absolute top-[-45px] bg-gray-100 text-black px-4 py-2 rounded-sm whitespace-nowrap shadow-md">
                         {value}%
-                    </div>
+                    </div>}
                 </div>
             </div>
         </div>

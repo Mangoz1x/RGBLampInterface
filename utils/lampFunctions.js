@@ -1,5 +1,58 @@
 import { SERVER_URL } from "./serverAvailability";
 
+const broadcastEffectUpdate = () => {
+    // Broadcast a run event
+    window.dispatchEvent(new CustomEvent("effectUpdateBroadcasted", { detail: {} }));
+}
+
+const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
+    let updated = false;
+    let result = "There was an error attempting the update.";
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            let r = await fetch(`${SERVER_URL}${endpoint}`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: body
+            });
+
+            if (r.status === 400) {
+                updated = false;
+                result = r.statusText;
+                break;
+            }
+
+            const tr = await r.text();
+            const data = JSON.parse(tr);
+
+            if (r.status === 200 && tr) {
+                updated = true;
+                result = data;
+                break;
+            }
+        } catch (err) {
+        }
+    }
+
+    if (updated) {
+        return { updated, result };
+    }
+
+    return { error: result }
+}
+
+export const runFunctionOnBroadcast = (eventName, func = () => {}) => {
+    window.listeningTo = window.listeningTo || {};
+    if (window.listeningTo[eventName]) {
+        window.removeEventListener(eventName, window.listeningTo[eventName]);
+    };
+    window.listeningTo[eventName] = func;
+    window.addEventListener(eventName, func);
+}
+
 export const hexToRgb = (hex) => {
     // Remove leading '#' if present
     hex = hex.replace(/^#/, '');
@@ -47,49 +100,11 @@ export const rgbToHex = (r, g, b) => {
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
-    let updated = false;
-    let result = "There was an error attempting the update.";
-
-    for (let i = 0; i < retries; i++) {
-        try {
-            let r = await fetch(`${SERVER_URL}${endpoint}`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: body
-            });
-
-            if (r.status === 400) {
-                updated = false;
-                result = r.statusText;
-                break;
-            }
-
-            const tr = await r.text();
-            const data = JSON.parse(tr);
-
-            if (r.status === 200 && tr) {
-                updated = true;
-                result = data;
-                break;
-            }
-        } catch (err) {
-        }
-    }
-
-    if (updated) {
-        return { updated, result };
-    }
-
-    return { error: result }
-}
-
 export const fillLampColor = async (hex) => {
     const c = hexToRgb(hex);
-    console.log(c)
 
+    broadcastEffectUpdate();
+    
     sendRepeatedRequest(
         10,
         JSON.stringify({
@@ -99,6 +114,40 @@ export const fillLampColor = async (hex) => {
     )
 }
 
+export const startBreathingEffect = async (hex, speed = 10) => {
+    if (speed < 10) return { error: "Speed must be greater than or equal to 10" };
+    if (speed > 110) return { error: "Speed must be less than or equal to  110" }
+
+    const c = hexToRgb(hex);
+
+    broadcastEffectUpdate();
+
+    sendRepeatedRequest(
+        10,
+        JSON.stringify({
+            "color": [c.r, c.g, c.b],
+            "steps": speed,
+            "wait": 0.03
+        }),
+        'breathing_effect'
+    )
+}
+
+export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]], wait = 0.05) => {
+    broadcastEffectUpdate();
+
+    const response = await sendRepeatedRequest(
+        10,
+        JSON.stringify({
+            gradient_steps: gradientSteps,
+            colors,
+            wait
+        }),
+        "rainbow_cycle"
+    );
+}
+
+// Brightness
 export const updateLampBrightness = async (brightnessDecimal = 0.2) => {
     if (brightnessDecimal <= 0) return { error: "Value must be greater than zero." };
     if (brightnessDecimal > 1) return { error: "Value must be less than one." };
@@ -109,18 +158,6 @@ export const updateLampBrightness = async (brightnessDecimal = 0.2) => {
             brightness: brightnessDecimal
         }),
         "set_brightness"
-    );
-}
-
-export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]], wait = 0.05) => {
-    const response = await sendRepeatedRequest(
-        10,
-        JSON.stringify({
-            gradient_steps: gradientSteps,
-            colors,
-            wait
-        }),
-        "rainbow_cycle"
     );
 }
 

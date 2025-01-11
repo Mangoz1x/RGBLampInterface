@@ -15,7 +15,7 @@ const SolidColor = () => {
         const result = await db.read(["color_fill"]);
         setLoading(false);
         if (result?.error) return;
-        const savedValue = result?.result?.retrieved?.color_fill?.color; 
+        const savedValue = result?.result?.retrieved?.color_fill?.color || [100, 0, 0]; 
         setColor(rgbToHex(savedValue[0], savedValue[1], savedValue[2]));
     }
 
