@@ -6,8 +6,10 @@ import SolidColor from "@/components/elements/SolidColor";
 import { Brightness } from "@/components/elements/Brightness";
 import { RainbowCycle } from "@/components/elements/RainbowCycle";
 import { BreathingEffect } from "@/components/elements/BreathingEffect";
-import { LampDB } from "@/utils/lampFunctions";
+import { LampDB, powerOff } from "@/utils/lampFunctions";
 import { TheaterChase } from "@/components/elements/TheaterChase";
+import { LoadingSpinner } from "@/components/bites/Button";
+
 const Home = () => {
   const db = new LampDB();
 
@@ -26,6 +28,7 @@ const Home = () => {
 
   const [selectedTab, setSelectedTab] = useState(null);
   const [sidenavOpen, setSidenavOpen] = useState(false);
+  const [powerOffLoading, setPowerOffLoading] = useState(false);
 
   useEffect(() => {
     if (isCheckingStatus.current) return;
@@ -46,11 +49,11 @@ const Home = () => {
       if (res?.error) return;
       const savedTab = res?.result?.retrieved?.preset || 'SolidColor';
       setSelectedTab(savedTab);
-    }) 
+    })
   }, []);
 
   useEffect(() => {
-    db.write("preset", selectedTab).then(res => {});
+    db.write("preset", selectedTab).then(res => { });
   }, [selectedTab]);
 
   return (
@@ -97,9 +100,26 @@ const Home = () => {
       {isLoaded && !error && (
         <div className="w-full h-full">
           <div className="items-center flex justify-between w-full px-8 py-3 shadow-md text-black">
-            <div>
-              <p>The Best RGB Lamp</p>
-              <p className="text-sm text-gray-500">Made by the #1 greatest engineer in the world (your boyfriend)</p>
+            <div className="flex w-fit gap-4">
+              <button onClick={() => {
+                setPowerOffLoading(true);
+                powerOff().then(res => {
+                  setPowerOffLoading(false);
+                })
+              }} className="flex gap-2 h-fit w-fit my-auto bg-gray-100 hover:bg-gray-200 rounded-full p-1 shrink-0">
+                {powerOffLoading ? (
+                  <LoadingSpinner width="size-7" height="size-7" bg="bg-gray-100" borderColor="border-black" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-7">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
+                  </svg>
+                )}
+              </button>
+
+              <div>
+                <p>The Best RGB Lamp</p>
+                <p className="text-sm text-gray-500">Made by the #1 greatest engineer in the world (your boyfriend)</p>
+              </div>
             </div>
 
             <button onClick={() => setSidenavOpen(!sidenavOpen)} className="flex items-center justify-center rounded-full bg-white hover:bg-gray-100 h-fit w-12 h-12 transition-all relative cursor-pointer">

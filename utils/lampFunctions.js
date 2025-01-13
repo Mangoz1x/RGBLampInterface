@@ -159,7 +159,7 @@ export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 
 
 export const startTheaterChase = async (primaryColor, secondaryColor, wait = 0.05) => {
     broadcastEffectUpdate();
-    console.log(primaryColor, secondaryColor)
+
     const response = await sendRepeatedRequest(
         10,
         JSON.stringify({
@@ -168,6 +168,16 @@ export const startTheaterChase = async (primaryColor, secondaryColor, wait = 0.0
             wait
         }),
         "theater_chase"
+    );
+
+    return response;
+}
+
+export const powerOff = async () => {
+    const response = await sendRepeatedRequest(
+        10,
+        JSON.stringify({}),
+        "stop"
     );
 
     return response;
