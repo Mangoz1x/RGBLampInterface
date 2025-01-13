@@ -7,17 +7,18 @@ import { Brightness } from "@/components/elements/Brightness";
 import { RainbowCycle } from "@/components/elements/RainbowCycle";
 import { BreathingEffect } from "@/components/elements/BreathingEffect";
 import { LampDB } from "@/utils/lampFunctions";
-
+import { TheaterChase } from "@/components/elements/TheaterChase";
 const Home = () => {
   const db = new LampDB();
 
   const Components = {
     SolidColor,
     RainbowCycle,
-    BreathingEffect
+    BreathingEffect,
+    TheaterChase
   }
 
-  const tabs = ["SolidColor", "RainbowCycle", "BreathingEffect"]
+  const tabs = ["SolidColor", "RainbowCycle", "BreathingEffect", "TheaterChase"]
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);

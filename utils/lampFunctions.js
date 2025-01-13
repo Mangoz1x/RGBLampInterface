@@ -44,7 +44,7 @@ const sendRepeatedRequest = async (retries = 10, body, endpoint) => {
     return { error: result }
 }
 
-export const runFunctionOnBroadcast = (eventName, func = () => {}) => {
+export const runFunctionOnBroadcast = (eventName, func = () => { }) => {
     window.listeningTo = window.listeningTo || {};
     if (window.listeningTo[eventName]) {
         window.removeEventListener(eventName, window.listeningTo[eventName]);
@@ -84,6 +84,10 @@ export const hexToRgb = (hex) => {
     return { r, g, b };
 }
 
+export const rgbObjectToArray = (obj) => {
+    return [obj.r, obj.g, obj.b];
+}
+
 export const rgbToHex = (r, g, b) => {
     // Ensure the RGB values are within the valid range (0-255)
     if ((r < 0 || r > 255) || (g < 0 || g > 255) || (b < 0 || b > 255)) {
@@ -104,14 +108,16 @@ export const fillLampColor = async (hex) => {
     const c = hexToRgb(hex);
 
     broadcastEffectUpdate();
-    
-    sendRepeatedRequest(
+
+    const response = await sendRepeatedRequest(
         10,
         JSON.stringify({
             "color": [c.r, c.g, c.b]
         }),
         'color_fill'
-    )
+    );
+
+    return response;
 }
 
 export const startBreathingEffect = async (hex, speed = 10) => {
@@ -122,7 +128,7 @@ export const startBreathingEffect = async (hex, speed = 10) => {
 
     broadcastEffectUpdate();
 
-    sendRepeatedRequest(
+    const response = await sendRepeatedRequest(
         10,
         JSON.stringify({
             "color": [c.r, c.g, c.b],
@@ -130,7 +136,9 @@ export const startBreathingEffect = async (hex, speed = 10) => {
             "wait": 0.03
         }),
         'breathing_effect'
-    )
+    );
+
+    return response;
 }
 
 export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]], wait = 0.05) => {
@@ -145,6 +153,24 @@ export const startLampRainbowCycle = async (gradientSteps = 20, colors = [[255, 
         }),
         "rainbow_cycle"
     );
+
+    return response;
+}
+
+export const startTheaterChase = async (primaryColor, secondaryColor, wait = 0.05) => {
+    broadcastEffectUpdate();
+    console.log(primaryColor, secondaryColor)
+    const response = await sendRepeatedRequest(
+        10,
+        JSON.stringify({
+            color: primaryColor,
+            alternate_color: secondaryColor,
+            wait
+        }),
+        "theater_chase"
+    );
+
+    return response;
 }
 
 // Brightness
